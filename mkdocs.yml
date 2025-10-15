@@ -93,11 +93,34 @@ theme:
 
 # Plugins
 plugins:
-  - blog
   - search:
       separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - minify:
       minify_html: true
+  
+  # Git integration plugins
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+  
+  # Navigation and organization
+  - section-index
+  
+  # Content enhancement
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      slide_effect: slide
+      width: 100%
+      height: auto
+      zoomable: true
+      draggable: true
+      auto_caption: false
+      caption_position: bottom
+  
+  # Macros for variables and custom functions
+  - macros
 
 # Hooks
 hooks:

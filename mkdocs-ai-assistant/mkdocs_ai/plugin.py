@@ -178,7 +178,28 @@ class AIAssistantPlugin(BasePlugin[AIAssistantConfig]):
                 except Exception as e:
                     log.error(f"Failed to process AI comments: {e}")
         
-        # TODO: Apply content enhancement if enabled
+        # Apply content enhancement if enabled
+        if self.config.enhancement.enabled:
+            try:
+                from .enhancement import EnhancementProcessor
+                
+                processor = EnhancementProcessor(
+                    provider=self.provider,
+                    cache_manager=self.cache_manager,
+                    enhancement_level=self.config.enhancement.level,
+                )
+                
+                log.info(f"Enhancing content in {page.file.src_path}")
+                
+                markdown = asyncio.run(
+                    processor.enhance_content(
+                        markdown,
+                        preserve_code=True,
+                        preserve_frontmatter=True,
+                    )
+                )
+            except Exception as e:
+                log.error(f"Failed to enhance content: {e}")
         
         return markdown
 

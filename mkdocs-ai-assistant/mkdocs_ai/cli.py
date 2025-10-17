@@ -503,5 +503,244 @@ def discover_assets(project_root: str):
         sys.exit(1)
 
 
+@main.command()
+@click.argument("file_path", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Output file path (default: overwrite input)",
+)
+@click.option(
+    "--provider",
+    "-p",
+    type=click.Choice(["openrouter", "gemini", "anthropic", "ollama"]),
+    default="openrouter",
+    help="AI provider to use",
+)
+@click.option(
+    "--api-key",
+    envvar="OPENROUTER_API_KEY",
+    help="API key for provider",
+)
+@click.option(
+    "--level",
+    "-l",
+    type=click.Choice(["light", "moderate", "aggressive"]),
+    default="moderate",
+    help="Enhancement level",
+)
+@click.option(
+    "--preview",
+    is_flag=True,
+    help="Preview changes without applying",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Verbose output",
+)
+def enhance(
+    file_path: str,
+    output: Optional[str],
+    provider: str,
+    api_key: Optional[str],
+    level: str,
+    preview: bool,
+    verbose: bool,
+):
+    """Enhance documentation content (grammar, clarity, consistency).
+    
+    Improves documentation quality by:
+    - Fixing grammar and spelling errors
+    - Improving clarity and readability
+    - Ensuring terminology consistency
+    - Preserving code blocks and formatting
+    
+    Enhancement levels:
+    - light: Grammar and spelling only
+    - moderate: Grammar, spelling, and clarity
+    - aggressive: Full enhancement including rewrites
+    
+    Examples:
+        # Enhance a file
+        mkdocs-ai enhance docs/guide.md
+        
+        # Preview changes
+        mkdocs-ai enhance docs/guide.md --preview
+        
+        # Light enhancement only
+        mkdocs-ai enhance docs/guide.md --level light
+        
+        # Save to different file
+        mkdocs-ai enhance docs/guide.md -o docs/guide-enhanced.md
+    """
+    from .enhancement import EnhancementProcessor
+    from .providers import create_provider
+    from .cache import CacheManager
+    
+    try:
+        file_path_obj = Path(file_path)
+        output_path = Path(output) if output else None
+        
+        # Create provider
+        provider_instance = create_provider(provider, api_key=api_key)
+        
+        # Create cache manager
+        cache_manager = CacheManager(cache_dir=".ai-cache")
+        
+        # Create processor
+        processor = EnhancementProcessor(
+            provider=provider_instance,
+            cache_manager=cache_manager,
+            enhancement_level=level,
+        )
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task(f"Enhancing {file_path_obj.name}...", total=None)
+            
+            # Read content
+            content = file_path_obj.read_text(encoding="utf-8")
+            
+            if preview:
+                # Get preview
+                preview_result = asyncio.run(
+                    processor.get_enhancement_preview(content, max_length=500)
+                )
+                
+                progress.update(task, description="Preview ready!")
+                
+                console.print("\n[bold]Preview (first 500 chars)[/bold]\n")
+                console.print("[yellow]Original:[/yellow]")
+                console.print(preview_result["original"])
+                console.print("\n[green]Enhanced:[/green]")
+                console.print(preview_result["enhanced"])
+                
+            else:
+                # Enhance content
+                enhanced = asyncio.run(processor.enhance_content(content))
+                
+                # Save result
+                output_file = output_path or file_path_obj
+                output_file.write_text(enhanced, encoding="utf-8")
+                
+                progress.update(task, description="Enhancement complete!")
+                
+                console.print(f"\n[green]✓[/green] Enhanced: {output_file}")
+                
+                if verbose:
+                    # Show quality metrics
+                    metrics = asyncio.run(processor.check_quality(enhanced))
+                    console.print("\n[bold]Quality Metrics:[/bold]")
+                    console.print(f"Grammar: {metrics.get('grammar_score', 0)}/100")
+                    console.print(f"Clarity: {metrics.get('clarity_score', 0)}/100")
+                    console.print(f"Consistency: {metrics.get('consistency_score', 0)}/100")
+                    console.print(f"Readability: {metrics.get('readability_score', 0)}/100")
+        
+        cache_manager.close()
+        
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        if verbose:
+            import traceback
+            console.print(traceback.format_exc())
+        sys.exit(1)
+
+
+@main.command()
+@click.argument("file_path", type=click.Path(exists=True))
+@click.option(
+    "--provider",
+    "-p",
+    type=click.Choice(["openrouter", "gemini", "anthropic", "ollama"]),
+    default="openrouter",
+    help="AI provider to use",
+)
+@click.option(
+    "--api-key",
+    envvar="OPENROUTER_API_KEY",
+    help="API key for provider",
+)
+def check_quality(
+    file_path: str,
+    provider: str,
+    api_key: Optional[str],
+):
+    """Check documentation quality and get improvement suggestions.
+    
+    Analyzes:
+    - Grammar quality
+    - Clarity and readability
+    - Terminology consistency
+    - Overall quality score
+    
+    Example:
+        mkdocs-ai check-quality docs/guide.md
+    """
+    from .enhancement import EnhancementProcessor
+    from .providers import create_provider
+    from .cache import CacheManager
+    
+    try:
+        file_path_obj = Path(file_path)
+        
+        # Create provider
+        provider_instance = create_provider(provider, api_key=api_key)
+        
+        # Create cache manager
+        cache_manager = CacheManager(cache_dir=".ai-cache")
+        
+        # Create processor
+        processor = EnhancementProcessor(
+            provider=provider_instance,
+            cache_manager=cache_manager,
+        )
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Analyzing quality...", total=None)
+            
+            # Read content
+            content = file_path_obj.read_text(encoding="utf-8")
+            
+            # Check quality
+            metrics = asyncio.run(processor.check_quality(content))
+            
+            progress.update(task, description="Analysis complete!")
+        
+        # Display results
+        console.print(f"\n[bold]Quality Report: {file_path_obj.name}[/bold]\n")
+        
+        console.print("[cyan]Scores:[/cyan]")
+        console.print(f"  Grammar: {metrics.get('grammar_score', 0)}/100")
+        console.print(f"  Clarity: {metrics.get('clarity_score', 0)}/100")
+        console.print(f"  Consistency: {metrics.get('consistency_score', 0)}/100")
+        console.print(f"  Readability: {metrics.get('readability_score', 0)}/100")
+        
+        if metrics.get('issues'):
+            console.print("\n[yellow]Issues Found:[/yellow]")
+            for issue in metrics['issues']:
+                console.print(f"  - {issue}")
+        
+        if metrics.get('suggestions'):
+            console.print("\n[green]Suggestions:[/green]")
+            for suggestion in metrics['suggestions']:
+                console.print(f"  - {suggestion}")
+        
+        cache_manager.close()
+        
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()

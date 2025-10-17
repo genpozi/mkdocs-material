@@ -52,10 +52,14 @@ class GenerationConfig(base.Config):
 class EnhancementConfig(base.Config):
     """Content enhancement configuration."""
 
-    enabled = c.Type(bool, default=True)
+    enabled = c.Type(bool, default=False)  # Disabled by default
+    level = c.Choice(
+        ["light", "moderate", "aggressive"],
+        default="moderate",
+    )
     auto_enhance = c.Type(bool, default=False)
     features = c.ListOfItems(
-        c.Choice(["grammar", "clarity", "consistency", "seo"]),
+        c.Choice(["grammar", "clarity", "consistency"]),
         default=["grammar", "clarity"],
     )
     preserve_code = c.Type(bool, default=True)

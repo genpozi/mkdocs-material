@@ -1,0 +1,95 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mkdocs-ai-assistant"
+version = "0.1.0"
+description = "AI-powered document generation and enhancement for MkDocs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "MkDocs AI Assistant Contributors" },
+]
+keywords = [
+    "mkdocs",
+    "ai",
+    "documentation",
+    "generation",
+    "enhancement",
+    "semantic-search",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Documentation",
+    "Topic :: Text Processing :: Markup :: Markdown",
+]
+
+dependencies = [
+    "mkdocs>=1.6.0",
+    "httpx>=0.27.0",  # Modern async HTTP client
+    "pydantic>=2.0.0",  # Data validation
+    "pyyaml>=6.0",
+    "jinja2>=3.1.0",
+    "click>=8.1.0",  # CLI support
+    "rich>=13.0.0",  # Beautiful terminal output
+    "diskcache>=5.6.0",  # Persistent caching
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+]
+search = [
+    "numpy>=1.26.0",
+    "chromadb>=0.4.0",  # Future vector DB support
+]
+obelisk = [
+    "requests>=2.31.0",  # Obelisk API client
+]
+
+[project.urls]
+Homepage = "https://github.com/genpozi/mkdocs-material"
+Documentation = "https://github.com/genpozi/mkdocs-material/tree/main/mkdocs-ai-assistant"
+Repository = "https://github.com/genpozi/mkdocs-material"
+Issues = "https://github.com/genpozi/mkdocs-material/issues"
+
+[project.entry-points."mkdocs.plugins"]
+"ai-assistant" = "mkdocs_ai.plugin:AIAssistantPlugin"
+
+[project.scripts]
+mkdocs-ai = "mkdocs_ai.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mkdocs_ai"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

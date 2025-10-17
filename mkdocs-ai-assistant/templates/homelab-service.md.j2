@@ -1,0 +1,146 @@
+# {{ service_name }}
+
+## Overview
+
+{{ service_description }}
+
+## Quick Reference
+
+- **Status**: {{ status | default("Active") }}
+- **Host**: {{ host | default("homelab.local") }}
+- **Port**: {{ port | default("N/A") }}
+- **Container**: {{ container_name | default(service_name | lower) }}
+- **Image**: {{ image | default("N/A") }}
+
+## Configuration
+
+### Docker Compose
+
+```yaml
+services:
+  {{ container_name | default(service_name | lower) }}:
+    image: {{ image }}
+    container_name: {{ container_name | default(service_name | lower) }}
+    {% if ports %}
+    ports:
+      {% for port in ports %}
+      - "{{ port }}"
+      {% endfor %}
+    {% endif %}
+    {% if volumes %}
+    volumes:
+      {% for volume in volumes %}
+      - {{ volume }}
+      {% endfor %}
+    {% endif %}
+    {% if environment %}
+    environment:
+      {% for key, value in environment.items() %}
+      {{ key }}: {{ value }}
+      {% endfor %}
+    {% endif %}
+    restart: unless-stopped
+```
+
+### Environment Variables
+
+{% if environment %}
+| Variable | Value | Description |
+|----------|-------|-------------|
+{% for key, value in environment.items() %}
+| `{{ key }}` | `{{ value }}` | {{ env_descriptions.get(key, "Configuration value") }} |
+{% endfor %}
+{% else %}
+No environment variables configured.
+{% endif %}
+
+## Access
+
+{% if web_ui %}
+- **Web UI**: [{{ web_ui }}]({{ web_ui }})
+{% endif %}
+{% if api_endpoint %}
+- **API**: [{{ api_endpoint }}]({{ api_endpoint }})
+{% endif %}
+{% if ssh_access %}
+- **SSH**: `ssh {{ ssh_access }}`
+{% endif %}
+
+## Maintenance
+
+### Backup
+
+```bash
+# Backup configuration
+docker exec {{ container_name | default(service_name | lower) }} backup-command
+
+# Backup volumes
+docker run --rm -v {{ container_name | default(service_name | lower) }}_data:/data -v $(pwd):/backup alpine tar czf /backup/{{ service_name | lower }}-backup-$(date +%Y%m%d).tar.gz /data
+```
+
+### Update
+
+```bash
+# Pull latest image
+docker compose pull {{ container_name | default(service_name | lower) }}
+
+# Restart service
+docker compose up -d {{ container_name | default(service_name | lower) }}
+```
+
+### Logs
+
+```bash
+# View logs
+docker compose logs -f {{ container_name | default(service_name | lower) }}
+
+# Last 100 lines
+docker compose logs --tail=100 {{ container_name | default(service_name | lower) }}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+{% if common_issues %}
+{% for issue in common_issues %}
+#### {{ issue.title }}
+
+**Symptoms**: {{ issue.symptoms }}
+
+**Solution**:
+```bash
+{{ issue.solution }}
+```
+{% endfor %}
+{% else %}
+<!-- AI-GENERATE: List 3 common issues for {{ service_name }} and their solutions -->
+{% endif %}
+
+### Health Check
+
+```bash
+# Check container status
+docker ps | grep {{ container_name | default(service_name | lower) }}
+
+# Check resource usage
+docker stats {{ container_name | default(service_name | lower) }} --no-stream
+
+# Test connectivity
+{% if web_ui %}
+curl -I {{ web_ui }}
+{% elif api_endpoint %}
+curl {{ api_endpoint }}/health
+{% else %}
+docker exec {{ container_name | default(service_name | lower) }} health-check-command
+{% endif %}
+```
+
+## Notes
+
+{{ notes | default("") }}
+
+---
+
+**Last Updated**: {{ last_updated | default("{{ now }}") }}
+**Maintained By**: {{ maintainer | default("Homelab Admin") }}

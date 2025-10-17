@@ -1,0 +1,76 @@
+site_name: MkDocs AI Assistant Test Site
+site_description: Test site for AI-powered documentation features
+site_author: AI Assistant Team
+
+theme:
+  name: readthedocs
+
+plugins:
+  - search
+  - ai-assistant:
+      enabled: true
+      debug: true
+      
+      provider:
+        name: openrouter
+        api_key: !ENV OPENROUTER_API_KEY
+        model: anthropic/claude-3.5-sonnet
+        fallback: google/gemini-pro
+        temperature: 0.7
+        max_tokens: 4000
+      
+      cache:
+        enabled: true
+        dir: .ai-cache
+        ttl: 86400
+      
+      generation:
+        enabled: true
+        output_dir: docs/generated
+        templates_dir: .ai-templates
+        cli_enabled: true
+        markdown_syntax: true
+      
+      enhancement:
+        enabled: false  # Disabled for initial testing
+        auto_enhance: false
+        features:
+          - grammar
+          - clarity
+        preserve_code: true
+        preserve_frontmatter: true
+      
+      search:
+        enabled: false  # Will enable in Phase 3
+      
+      assets:
+        enabled: false  # Will enable in Phase 4
+      
+      obelisk:
+        enabled: false  # Will enable in Phase 5
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+  - Features:
+    - Document Generation: features/generation.md
+    - Content Enhancement: features/enhancement.md
+    - Semantic Search: features/search.md
+  - Examples:
+    - Basic Usage: examples/basic.md
+    - Advanced: examples/advanced.md
+  - Generated:
+    - Index: generated/index.md

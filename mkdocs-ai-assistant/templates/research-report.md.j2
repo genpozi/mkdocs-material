@@ -1,0 +1,145 @@
+# {{ title }}
+
+{% if subtitle %}
+## {{ subtitle }}
+{% endif %}
+
+---
+
+**Author**: {{ author | default("Research Team") }}  
+**Date**: {{ date | default("{{ now }}") }}  
+**Status**: {{ status | default("Draft") }}  
+{% if tags %}**Tags**: {{ tags | join(", ") }}{% endif %}
+
+---
+
+## Executive Summary
+
+{% if executive_summary %}
+{{ executive_summary }}
+{% else %}
+<!-- AI-GENERATE: Create a 2-3 paragraph executive summary covering the key findings, methodology, and recommendations for this research on {{ title }} -->
+{% endif %}
+
+## Research Question
+
+{% if research_question %}
+{{ research_question }}
+{% else %}
+<!-- AI-GENERATE: Formulate a clear research question based on the topic: {{ title }} -->
+{% endif %}
+
+## Background
+
+{% if background %}
+{{ background }}
+{% else %}
+<!-- AI-GENERATE: Provide background context for {{ title }}, including why this research is important and what gap it fills -->
+{% endif %}
+
+## Methodology
+
+{% if methodology %}
+{{ methodology }}
+{% else %}
+### Research Approach
+
+<!-- AI-GENERATE: Describe the research methodology used for {{ title }}, including data sources, analysis methods, and validation approaches -->
+
+### Data Sources
+
+{% if data_sources %}
+{% for source in data_sources %}
+- **{{ source.name }}**: {{ source.description }}
+  - Type: {{ source.type }}
+  - Date Accessed: {{ source.date }}
+  {% if source.url %}
+  - URL: [{{ source.url }}]({{ source.url }})
+  {% endif %}
+{% endfor %}
+{% else %}
+<!-- AI-GENERATE: List 5-7 relevant data sources for researching {{ title }} -->
+{% endif %}
+{% endif %}
+
+## Findings
+
+{% if findings %}
+{{ findings }}
+{% else %}
+### Key Findings
+
+<!-- AI-GENERATE: Present the main findings from research on {{ title }}, organized by theme or importance -->
+
+### Supporting Evidence
+
+<!-- AI-GENERATE: Provide detailed evidence and data supporting the key findings -->
+{% endif %}
+
+## Analysis
+
+{% if analysis %}
+{{ analysis }}
+{% else %}
+### Interpretation
+
+<!-- AI-GENERATE: Analyze what the findings mean in the context of {{ title }}, including implications and significance -->
+
+### Comparison with Existing Research
+
+<!-- AI-GENERATE: Compare these findings with existing research or industry standards related to {{ title }} -->
+
+### Limitations
+
+<!-- AI-GENERATE: Discuss limitations of this research on {{ title }}, including scope constraints, data limitations, or methodological considerations -->
+{% endif %}
+
+## Recommendations
+
+{% if recommendations %}
+{{ recommendations }}
+{% else %}
+<!-- AI-GENERATE: Provide 5-7 actionable recommendations based on the research findings for {{ title }} -->
+{% endif %}
+
+## Future Research
+
+{% if future_research %}
+{{ future_research }}
+{% else %}
+<!-- AI-GENERATE: Suggest 3-5 areas for future research building on this work about {{ title }} -->
+{% endif %}
+
+## References
+
+{% if references %}
+{% for ref in references %}
+{{ loop.index }}. {{ ref.authors }} ({{ ref.year }}). *{{ ref.title }}*. {{ ref.publication }}. {% if ref.url %}[Link]({{ ref.url }}){% endif %}
+{% endfor %}
+{% else %}
+<!-- AI-GENERATE: Create a bibliography of 10-15 relevant sources for {{ title }}, formatted in APA style -->
+{% endif %}
+
+## Appendices
+
+{% if appendices %}
+{% for appendix in appendices %}
+### Appendix {{ loop.index }}: {{ appendix.title }}
+
+{{ appendix.content }}
+{% endfor %}
+{% else %}
+### Appendix A: Additional Data
+
+<!-- AI-GENERATE: Include supplementary data tables or charts relevant to {{ title }} -->
+
+### Appendix B: Glossary
+
+<!-- AI-GENERATE: Define key technical terms used in this research on {{ title }} -->
+{% endif %}
+
+---
+
+**Document Version**: {{ version | default("1.0") }}  
+**Last Updated**: {{ last_updated | default("{{ now }}") }}  
+**Review Status**: {{ review_status | default("Pending Review") }}

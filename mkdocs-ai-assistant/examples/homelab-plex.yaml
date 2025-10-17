@@ -1,0 +1,92 @@
+# Example context file for generating Plex homelab documentation
+service_name: "Plex Media Server"
+service_description: "Centralized media streaming server for movies, TV shows, music, and photos"
+status: "Active"
+host: "homelab.local"
+port: "32400"
+container_name: "plex"
+image: "lscr.io/linuxserver/plex:latest"
+
+ports:
+  - "32400:32400/tcp"
+  - "1900:1900/udp"
+  - "3005:3005/tcp"
+  - "8324:8324/tcp"
+  - "32410:32410/udp"
+  - "32412:32412/udp"
+  - "32413:32413/udp"
+  - "32414:32414/udp"
+  - "32469:32469/tcp"
+
+volumes:
+  - "/opt/plex/config:/config"
+  - "/mnt/media/movies:/movies"
+  - "/mnt/media/tv:/tv"
+  - "/mnt/media/music:/music"
+
+environment:
+  PUID: "1000"
+  PGID: "1000"
+  TZ: "America/New_York"
+  VERSION: "docker"
+  PLEX_CLAIM: "claim-xxxxxxxxxxxx"
+
+env_descriptions:
+  PUID: "User ID for file permissions"
+  PGID: "Group ID for file permissions"
+  TZ: "Timezone for scheduling and logs"
+  VERSION: "Plex version to install"
+  PLEX_CLAIM: "Claim token from plex.tv/claim"
+
+web_ui: "http://homelab.local:32400/web"
+api_endpoint: "http://homelab.local:32400"
+
+common_issues:
+  - title: "Library Not Scanning"
+    symptoms: "New media files not appearing in Plex"
+    solution: |
+      # Force library scan
+      docker exec plex /usr/lib/plexmediaserver/Plex\ Media\ Scanner --scan --refresh --section 1
+      
+      # Check permissions
+      docker exec plex ls -la /movies
+  
+  - title: "Transcoding Issues"
+    symptoms: "Buffering or playback errors"
+    solution: |
+      # Check transcoder logs
+      docker exec plex tail -f /config/Library/Application\ Support/Plex\ Media\ Server/Logs/Plex\ Media\ Server.log
+      
+      # Verify hardware acceleration
+      docker exec plex nvidia-smi  # If using GPU
+  
+  - title: "Remote Access Not Working"
+    symptoms: "Cannot access Plex outside home network"
+    solution: |
+      # Check port forwarding
+      curl -I https://plex.tv/pms/servers
+      
+      # Restart Plex
+      docker compose restart plex
+
+notes: |
+  ## Performance Tips
+  
+  - Enable hardware transcoding for better performance
+  - Use optimized versions for mobile devices
+  - Schedule library scans during off-peak hours
+  
+  ## Security
+  
+  - Keep Plex updated for security patches
+  - Use strong authentication
+  - Consider VPN for remote access instead of port forwarding
+  
+  ## Backup Strategy
+  
+  - Weekly backup of `/opt/plex/config`
+  - Media files backed up separately to NAS
+  - Database backup before major updates
+
+last_updated: "2024-01-15"
+maintainer: "Homelab Admin"

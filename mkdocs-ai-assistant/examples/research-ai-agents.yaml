@@ -1,0 +1,93 @@
+# Example context file for generating AI agents research report
+title: "Comparative Analysis of AI Agent Frameworks for Software Development"
+subtitle: "Evaluating Autonomous Coding Agents in 2024"
+author: "Research Team"
+date: "2024-01-15"
+status: "In Progress"
+tags:
+  - "AI Agents"
+  - "Software Development"
+  - "Automation"
+  - "LLMs"
+  - "Developer Tools"
+
+research_question: |
+  How do different AI agent frameworks compare in terms of code quality, autonomy, 
+  integration capabilities, and cost-effectiveness for software development tasks?
+
+background: |
+  The emergence of large language models has enabled a new generation of AI-powered 
+  development tools. These range from simple code completion to fully autonomous agents 
+  capable of understanding requirements, writing code, running tests, and iterating on 
+  solutions. This research examines the current landscape of AI agent frameworks to 
+  understand their capabilities, limitations, and optimal use cases.
+
+data_sources:
+  - name: "GitHub Repository Analysis"
+    description: "Analysis of popular AI agent repositories"
+    type: "Primary Data"
+    date: "2024-01-10"
+    url: "https://github.com/topics/ai-agents"
+  
+  - name: "Developer Surveys"
+    description: "Survey of 500+ developers using AI coding tools"
+    type: "Primary Data"
+    date: "2024-01-05"
+  
+  - name: "Academic Papers"
+    description: "Recent publications on autonomous agents"
+    type: "Secondary Data"
+    date: "2023-2024"
+    url: "https://arxiv.org/search/?query=autonomous+agents"
+  
+  - name: "Vendor Documentation"
+    description: "Official documentation from major AI agent platforms"
+    type: "Secondary Data"
+    date: "2024-01-01"
+
+executive_summary: |
+  This research evaluates five major AI agent frameworks for software development: 
+  AutoGPT, GPT-Engineer, MetaGPT, Devin, and Cursor. Our analysis reveals that while 
+  all frameworks show promise, they excel in different areas. AutoGPT offers the most 
+  flexibility but requires significant prompt engineering. GPT-Engineer provides the 
+  best balance of autonomy and control for greenfield projects. MetaGPT excels at 
+  multi-agent collaboration for complex systems. Devin shows superior code quality 
+  but at a premium price point. Cursor offers the best IDE integration for existing 
+  codebases.
+  
+  Key findings indicate that AI agents are most effective for well-defined tasks, 
+  boilerplate generation, and documentation. They struggle with complex architectural 
+  decisions, debugging subtle issues, and maintaining context over long sessions. 
+  We recommend a hybrid approach where AI agents handle routine tasks while human 
+  developers focus on high-level design and critical problem-solving.
+
+recommendations:
+  - "Start with IDE-integrated tools like Cursor for existing projects before adopting fully autonomous agents"
+  - "Use AI agents for documentation generation and test writing to build confidence"
+  - "Implement code review processes specifically designed for AI-generated code"
+  - "Establish clear guidelines for when to use AI agents vs. traditional development"
+  - "Monitor costs carefully as API usage can scale quickly with autonomous agents"
+  - "Invest in prompt engineering training for development teams"
+  - "Consider open-source alternatives for sensitive codebases"
+
+references:
+  - authors: "Wang, L., et al."
+    year: "2023"
+    title: "A Survey on Large Language Model based Autonomous Agents"
+    publication: "arXiv preprint arXiv:2308.11432"
+    url: "https://arxiv.org/abs/2308.11432"
+  
+  - authors: "Chen, M., et al."
+    year: "2021"
+    title: "Evaluating Large Language Models Trained on Code"
+    publication: "arXiv preprint arXiv:2107.03374"
+    url: "https://arxiv.org/abs/2107.03374"
+  
+  - authors: "Nijkamp, E., et al."
+    year: "2023"
+    title: "CodeGen: An Open Large Language Model for Code"
+    publication: "ICLR 2023"
+    url: "https://arxiv.org/abs/2203.13474"
+
+version: "0.9"
+review_status: "Under Review"

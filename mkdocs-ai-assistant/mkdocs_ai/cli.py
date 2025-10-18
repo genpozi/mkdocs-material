@@ -742,5 +742,244 @@ def check_quality(
         sys.exit(1)
 
 
+@main.command()
+@click.option(
+    "--docs-dir",
+    type=click.Path(exists=True),
+    default="docs",
+    help="Documentation directory",
+)
+@click.option(
+    "--index-path",
+    type=click.Path(),
+    default=".ai-cache/search_index.json",
+    help="Path to search index",
+)
+@click.option(
+    "--provider",
+    "-p",
+    type=click.Choice(["openrouter", "gemini", "anthropic", "ollama"]),
+    default="openrouter",
+    help="AI provider to use",
+)
+@click.option(
+    "--api-key",
+    envvar="OPENROUTER_API_KEY",
+    help="API key for provider",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Verbose output",
+)
+def build_search_index(
+    docs_dir: str,
+    index_path: str,
+    provider: str,
+    api_key: Optional[str],
+    verbose: bool,
+):
+    """Build semantic search index from documentation.
+    
+    Generates embeddings for all markdown files and creates a searchable index.
+    
+    Examples:
+        # Build index
+        mkdocs-ai build-search-index
+        
+        # Custom docs directory
+        mkdocs-ai build-search-index --docs-dir my-docs
+        
+        # Custom index path
+        mkdocs-ai build-search-index --index-path search.json
+    """
+    from .search import SearchBuilder
+    from .providers import create_provider
+    from .cache import CacheManager
+    
+    try:
+        docs_path = Path(docs_dir)
+        index_path_obj = Path(index_path)
+        
+        # Find all markdown files
+        md_files = list(docs_path.rglob("*.md"))
+        
+        if not md_files:
+            console.print(f"[yellow]No markdown files found in {docs_dir}[/yellow]")
+            return
+        
+        console.print(f"Found {len(md_files)} markdown files")
+        
+        # Create provider
+        provider_instance = create_provider(provider, api_key=api_key)
+        
+        # Create cache manager
+        cache_manager = CacheManager(cache_dir=".ai-cache")
+        
+        # Create builder
+        builder = SearchBuilder(
+            provider=provider_instance,
+            cache_manager=cache_manager,
+            index_path=index_path_obj,
+        )
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Building search index...", total=None)
+            
+            # Build index
+            index = asyncio.run(builder.build_index_from_files(md_files))
+            
+            # Save index
+            index.save()
+            
+            progress.update(task, description="Index built!")
+        
+        # Display stats
+        stats = index.get_stats()
+        console.print("\n[bold green]✓ Search Index Built[/bold green]\n")
+        console.print(f"Total chunks: {stats['total_chunks']}")
+        console.print(f"Total documents: {stats['total_documents']}")
+        console.print(f"Index size: {stats['index_size_mb']:.2f} MB")
+        console.print(f"Avg chunk length: {stats['avg_chunk_length']:.0f} chars")
+        console.print(f"\nIndex saved to: {index_path_obj}")
+        
+        cache_manager.close()
+        
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        if verbose:
+            import traceback
+            console.print(traceback.format_exc())
+        sys.exit(1)
+
+
+@main.command()
+@click.argument("query")
+@click.option(
+    "--index-path",
+    type=click.Path(exists=True),
+    default=".ai-cache/search_index.json",
+    help="Path to search index",
+)
+@click.option(
+    "--provider",
+    "-p",
+    type=click.Choice(["openrouter", "gemini", "anthropic", "ollama"]),
+    default="openrouter",
+    help="AI provider to use",
+)
+@click.option(
+    "--api-key",
+    envvar="OPENROUTER_API_KEY",
+    help="API key for provider",
+)
+@click.option(
+    "--top-k",
+    "-k",
+    type=int,
+    default=5,
+    help="Number of results to return",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Verbose output",
+)
+def search(
+    query: str,
+    index_path: str,
+    provider: str,
+    api_key: Optional[str],
+    top_k: int,
+    verbose: bool,
+):
+    """Search documentation using semantic search.
+    
+    Searches the documentation index for relevant content.
+    
+    Examples:
+        # Search documentation
+        mkdocs-ai search "How to configure Docker"
+        
+        # Get more results
+        mkdocs-ai search "API reference" -k 10
+        
+        # Verbose output
+        mkdocs-ai search "deployment guide" -v
+    """
+    from .search import search_documents
+    from .providers import create_provider
+    from .cache import CacheManager
+    
+    try:
+        index_path_obj = Path(index_path)
+        
+        if not index_path_obj.exists():
+            console.print(f"[red]Error:[/red] Search index not found at {index_path}")
+            console.print("Run 'mkdocs-ai build-search-index' first")
+            sys.exit(1)
+        
+        # Create provider
+        provider_instance = create_provider(provider, api_key=api_key)
+        
+        # Create cache manager
+        cache_manager = CacheManager(cache_dir=".ai-cache")
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Searching...", total=None)
+            
+            # Search
+            results = asyncio.run(
+                search_documents(
+                    query=query,
+                    index_path=index_path_obj,
+                    provider=provider_instance,
+                    cache_manager=cache_manager,
+                    top_k=top_k,
+                )
+            )
+            
+            progress.update(task, description="Search complete!")
+        
+        # Display results
+        console.print(f"\n[bold]Search Results for: \"{query}\"[/bold]\n")
+        
+        if not results:
+            console.print("[yellow]No results found[/yellow]")
+        else:
+            for i, result in enumerate(results, 1):
+                score = result.get('score', 0)
+                metadata = result.get('metadata', {})
+                highlight = result.get('highlight', '')
+                
+                console.print(f"[cyan]{i}. {metadata.get('filename', 'Unknown')}[/cyan]")
+                console.print(f"   Score: {score:.3f}")
+                console.print(f"   {highlight}")
+                console.print()
+                
+                if verbose:
+                    console.print(f"   Path: {metadata.get('path', 'N/A')}")
+                    console.print()
+        
+        cache_manager.close()
+        
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        if verbose:
+            import traceback
+            console.print(traceback.format_exc())
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()

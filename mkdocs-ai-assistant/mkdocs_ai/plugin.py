@@ -214,8 +214,41 @@ class AIAssistantPlugin(BasePlugin[AIAssistantConfig]):
         
         log.info("AI Assistant post-build phase")
         
-        # TODO: Generate semantic search index
-        # TODO: Export to Obelisk format if enabled
+        # Generate semantic search index if enabled
+        if self.config.search.enabled and self.provider:
+            try:
+                from .search import SearchBuilder
+                from pathlib import Path
+                
+                log.info("Building semantic search index")
+                
+                # Get docs directory
+                docs_dir = Path(config.docs_dir)
+                
+                # Find all markdown files
+                md_files = list(docs_dir.rglob("*.md"))
+                
+                if md_files:
+                    # Create builder
+                    builder = SearchBuilder(
+                        provider=self.provider,
+                        cache_manager=self.cache_manager,
+                        index_path=Path(self.config.search.index_file),
+                    )
+                    
+                    # Build index
+                    index = asyncio.run(builder.build_index_from_files(md_files))
+                    
+                    # Save index
+                    index.save()
+                    
+                    stats = index.get_stats()
+                    log.info(f"Search index built: {stats['total_chunks']} chunks from {stats['total_documents']} documents")
+                else:
+                    log.warning("No markdown files found for search indexing")
+                    
+            except Exception as e:
+                log.error(f"Failed to build search index: {e}")
         
         # Log cache statistics
         if self.cache_manager:

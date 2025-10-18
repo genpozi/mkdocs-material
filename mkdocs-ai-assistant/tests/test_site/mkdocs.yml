@@ -32,19 +32,29 @@ plugins:
         markdown_syntax: true
       
       enhancement:
-        enabled: false  # Disabled for initial testing
-        auto_enhance: false
-        features:
-          - grammar
-          - clarity
+        enabled: true
+        level: moderate
+        auto_enhance: false  # Manual enhancement only
         preserve_code: true
         preserve_frontmatter: true
       
       search:
-        enabled: false  # Will enable in Phase 3
+        enabled: true
+        chunk_size: 1000
+        chunk_overlap: 200
+        index_file: search_index.json
       
       assets:
-        enabled: false  # Will enable in Phase 4
+        enabled: true
+        sources:
+          - type: docker-compose
+            path: ../../../
+            pattern: "**/docker-compose*.yml"
+            output_dir: docs/generated/docker
+          - type: code
+            path: ../../mkdocs_ai
+            languages: [python]
+            output_dir: docs/generated/api
       
       obelisk:
         enabled: false  # Will enable in Phase 5

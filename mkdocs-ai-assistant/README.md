@@ -39,15 +39,34 @@ pip install -e .
 
 ## Quick Start
 
-### 1. Configure Plugin
+### 1. Set Up API Keys
+
+**IMPORTANT**: Never commit API keys to git! Use environment variables.
+
+```bash
+# Set environment variables (recommended)
+export GEMINI_API_KEY="your-gemini-key"
+export OPENROUTER_API_KEY="your-openrouter-key"
+export PERPLEXITY_API_KEY="your-perplexity-key"
+
+# Or use the setup script
+source setup-env.sh
+
+# Test the setup
+./test-setup.sh
+```
+
+See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed instructions.
+
+### 2. Configure Plugin
 
 ```yaml
 # mkdocs.yml
 plugins:
   - ai-assistant:
       provider:
-        name: openrouter
-        api_key: !ENV OPENROUTER_API_KEY
+        name: gemini  # or openrouter, perplexity
+        api_key: !ENV GEMINI_API_KEY  # Use environment variable!
         model: anthropic/claude-3.5-sonnet
       
       generation:
